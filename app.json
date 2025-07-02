@@ -25,7 +25,10 @@
       "typedRoutes": true
     },
     "extra": {
-      "router": {}
+      "router": {},
+      "eas": {
+        "projectId": "cd035b99-bbdf-4042-9a5c-06ed119d845f"
+      }
     },
     "android": {
       "package": "com.veronica_ramala.secureinadmin"
