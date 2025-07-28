@@ -3,6 +3,9 @@ node_modules/
 
 # expo
 .expo/
+.qodo/
+.vscode/
+.zencoder/
 dist/
 web-build/
 expo-env.d.ts
