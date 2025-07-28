@@ -20,16 +20,20 @@
       "expo-router",
       "expo-font",
       "expo-web-browser",
-      "expo-barcode-scanner"
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "recordAudioAndroid": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "cd035b99-bbdf-4042-9a5c-06ed119d845f"
-      }
+      "router": {}
     },
     "android": {
       "package": "com.veronica_ramala.secureinadmin"
