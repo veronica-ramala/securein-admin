@@ -10,7 +10,7 @@ interface User {
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
-  login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (username: string, password: string, role: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   isLoading: boolean;
   refreshAuth: () => Promise<void>;
@@ -24,10 +24,18 @@ const TOKEN_EXPIRY_KEY = 'token_expiry';
 
 // WARNING: These are development-only credentials!
 // In production, remove this and implement proper API authentication
-const FALLBACK_CREDENTIALS = {
-  username: process.env.ADMIN_USERNAME || 'admin', 
-  password: process.env.ADMIN_PASSWORD || 'admin123'
-};
+const FALLBACK_CREDENTIALS = [
+  {
+    username: process.env.ADMIN_USERNAME || 'admin',
+    password: process.env.ADMIN_PASSWORD || 'admin123',
+    role: 'admin'
+  },
+  {
+    username: 'security',
+    password: 'security123',
+    role: 'security'
+  }
+];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -56,9 +64,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(parsedUser);
           setIsAuthenticated(true);
         } else {
-          // Token expired, try to refresh
-          await refreshAuth();
+          await clearAuthData();
         }
+      } else {
+        await clearAuthData();
       }
     } catch (error) {
       console.error('Error checking auth status:', error);
@@ -82,16 +91,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const login = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (username: string, password: string, role: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
 
       // For now, use hardcoded credentials (to be replaced with real API later)
-      if (username === FALLBACK_CREDENTIALS.username && password === FALLBACK_CREDENTIALS.password) {
+      const credential = FALLBACK_CREDENTIALS.find(
+        cred => cred.username === username && cred.password === password && cred.role === role
+      );
+
+      if (credential) {
         const fallbackUser: User = {
-          id: 'admin',
-          username: 'admin',
-          role: 'administrator'
+          id: credential.username,
+          username: credential.username,
+          role: credential.role
         };
 
         const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours
@@ -104,12 +117,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         setUser(fallbackUser);
         setIsAuthenticated(true);
+        
         return { success: true };
       }
-
       return { 
         success: false, 
-        error: 'Invalid username or password.' 
+        error: 'Invalid username, password, or role combination.' 
       };
     } catch (error) {
       console.error('Login error:', error);
